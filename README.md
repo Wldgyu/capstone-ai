@@ -1,49 +1,85 @@
-# capstone-ai
-캡스톤 ai파트
+## 수정된 부분
 
-1. 간단한 설명
-공공데이터 API를 통해 정확한 영양 성분을 추출하며, 나아가 사용자 맞춤형 음식 효능 및 활용 방법을 제안하는 AI 에이전트입니다.
+```
+      144       user_preference: str  # 양식, 일식, 한식 등
+      145       nutrition_data: Optional[dict] = None # 기존 분석된 성분 데이터
+      146
+      147 + # [추가] 냉장고 전체 식재료 기반 추천 요청 모델
+      148 + class FridgeRecommendationRequest(BaseModel):
+      149 +     user_id: str
+      150 +     user_preference: str
+      151 +     ingredients: List[str]
+      152
+      153   # 추천 agent 구축
+      154   class FoodRecommendationAgent:
+      ══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+      218           return {"status": "success", "data": data}
+      219       return {"status": "error", "message": "데이터 없음"}
+      220
+      216 - # 2. 음식 추천 엔드포인트 (새로 추가)
+      221 + # 1. 냉장고 전체 식재료 기반 레시피 추천 (Java 백엔드와 연동)
+      222 + @app.post("/api/recommend")
+      223 + async def get_fridge_recommendations(request: FridgeRecommendationRequest):
+      224 +     """
+      225 +     Java 백엔드로부터 냉장고의 모든 식재료 리스트를 전달받아
+      226 +     사용자의 취향(DietGoal)을 고려한 맞춤 요리 3가지를 추천합니다.
+      227 +     """
+      228 +     if not GEMINI_API_KEY:
+      229 +         raise HTTPException(status_code=500, detail="GEMINI_API_KEY가 설정되지 않았습니다.")
+      230 +
+      231 +     try:
+      232 +         agent = FoodRecommendationAgent(GEMINI_API_KEY)
+      233 +         chain = agent.get_recommendation_chain()
+      234 +
+      235 +         # 식재료 리스트를 하나의 문자열로 결합하여 context 제공
+      236 +         ingredients_summary = ", ".join(request.ingredients)
+      237 +
+      238 +         result = chain.invoke({
+      239 +             "user_id": request.user_id,
+      240 +             "user_preference": request.user_preference,
+      241 +             "food_name": "냉장고 속 다양한 식재료",
+      242 +             "cat": "복합 재료",
+      243 +             "food_data": ingredients_summary,
+      244 +             "format_instructions": agent.parser.get_format_instructions()
+      245 +         })
+      246 +
+      247 +         return {"status": "success", "recommendations": result["recommendations"]}
+      248 +     except Exception as e:
+      249 +         print(f"냉장고 기반 추천 중 오류 발생: {e}")
+      250 +         raise HTTPException(status_code=500, detail=str(e))
+      251 +
+      252 + # 2. 특정 음식 기반 추천 엔드포인트
+      253   @app.post("/fdmake")
+      254   async def get_recommendations(request: RecommendationRequest):
+      255       """
+```
 
-2. 주요 기능 (Features)
-개발하신 코드의 핵심 로직을 섹션으로 나누어 설명하세요.
 
-Intelligent Image Analysis: Gemini 2.5 Flash를 활용한 식재료/음식 자동 분류 (Keyword, Group, Subgroup 추출).
+🕵️‍♂️ 정밀 코드 리뷰 리포트
+1. 요청 규격(Request) 매칭: 완벽 통과 🟢
 
-Hybrid Data Pipeline: 공공데이터 API(식품의약품안전처)와 LLM의 지식을 결합한 하이브리드 영양 정보 검색 시스템.
+Python (받는 쪽): FridgeRecommendationRequest 클래스에서 user_id, user_preference, ingredients(List) 3가지를 필수로 요구하도록 잘 정의되었습니다.
 
-Data Refinement: API 검색 결과가 부정확할 경우, LLM이 스스로 데이터를 검토하고 보정(Self-correction)하여 정제된 JSON 출력.
+Java (보내는 쪽): AiRecipeRequestDto를 만들어 똑같이 user_id, user_preference, ingredients 필드를 꾹꾹 담아서 보냅니다. 한 글자의 오타도 없기 때문에 파이썬 서버가 에러(422 Unprocessable Entity)를 뱉을 일이 없습니다.
 
-3. 데이터 파이프라인 구조 (Architecture)
-텍스트로 흐름을 명시하면 전문가적인 느낌을 줍니다.
+2. 응답 규격(Response) 파싱: 완벽 통과 🟢
 
-Input: 음식 이미지 혹은 텍스트 입력.
+Python (보내는 쪽): {"status": "success", "recommendations": [레시피1, 레시피2, 레시피3]} 형태로 묶어서 정형화된 JSON을 반환하도록 수정된 부분이 아주 깔끔합니다.
 
-Step 1 (Gemini): 이미지 분석 및 검색 키워드 정제.
+Java (받는 쪽): AiRecipeListResponseDto라는 껍데기(Wrapper) DTO를 새로 만들어서, Python이 보낸 status와 recommendations 리스트를 쏙 빼오도록 설계한 부분은 실무에서 가장 권장하는 정석적인 파싱 방법입니다.
 
-Step 2 (API): 공공데이터 API 연동 및 후보군 추출 (Score-based Matching).
+3. 예외 처리(Fallback) 방어막: 완벽 통과 🟢
 
-Step 3 (Refinement): LLM을 통한 최종 데이터 검증 및 JSON 생성.
+Java 로직: try-catch 문을 통해 AI 서버가 죽어 있거나 타임아웃이 나면 에러를 터뜨리지 않고 Collections.emptyList()(빈 리스트)를 반환하도록 안전하게 짰습니다. 덕분에 AI 서버에 장애가 나도 우리 냉부해 메인 서버는 절대 죽지 않습니다.
 
-제마나이 apikey 받아오고 그다음 공공데이터 apikey 를 txt 파일에 넣습니다
-ex)
-GEMINI_API_KEY= apikey넣기
-FOOD_NUTRITION_API_KEY= apikey넣기
+💡 시니어의 1% 팁 (나중을 위한 리팩토링)
+당장 코드가 100% 정상 작동하므로 지금 당장 수정할 필요는 절대 없습니다. 하지만 실무 관례상 알아두시면 좋은 팁입니다.
 
-넣은 txt 파일을 코랩 드라이브에 넣고 실행 하면 됩니다. 오류 발생시 apikey.txt 파일 경로 를 제대로 넣었는지 확인
+AiRecipeRequestDto.java를 보면 변수명을 user_id, user_preference처럼 파이썬 스타일(스네이크 케이스)로 작성하셨습니다.
+
+자바는 userId, userPreference처럼 낙타 등 모양(카멜 케이스)으로 쓰는 것이 원칙입니다.
+
+나중에 시간이 남을 때 자바 클래스 변수명은 userId로 바꾸고, 그 위에 @JsonProperty("user_id") 라는 어노테이션을 달아주면, 자바에서는 자바스럽게 쓰면서 파이썬한테 보낼 때는 파이썬이 좋아하는 user_id로 알아서 이름표를 바꿔 달고 날아갑니다! (이것이 진정한 백엔드의 멋입니다 😎)
 
 
 
-오늘 진행한 핵심 작업들을 바탕으로, 프론트엔드-백엔드-AI 서버 간의 유기적인 흐름과 LangChain 기반의 맞춤형 추천 로직을 강조한 README 작성 예시입니다. 
-프로젝트의 기술적 완성도를 보여주기에 아주 좋은 내용들입니다.
-📝 Capstone Project: AI 기반 음식 분석 및 맞춤형 추천 시스템📅 작업 날짜: 2026-05-15✅ 
-
-오늘 진행된 주요 업데이트
-1. 데이터 파이프라인 구조 고도화분석 및 추천 로직의 분리: 단순한 분석을 넘어, 분석된 데이터를 기반으로 유저 맞춤형 추천을 제공하는 2단계 에이전트 구조를 확립했습니다.  
-데이터 흐름(Data Flow):Frontend: 이미지/텍스트 입력 전송.Java Backend: 유저 세션 및 취향 정보 매핑.AI Server (FastAPI): 시각적 분석 → 공공데이터 매칭 → 개인화 추천 생성.  
-
-2. LangChain 기반 Food Recommendation Agent 구축개인화 추천(Personalization): user_id, food_name, cat, user_preference 등 4가지 핵심 지표를 활용
-사용자 취향(한식, 양식, 일식 등)에 최적화된 요리를 추천합니다.
-지능형 프롬프트 설계:Persona: 영양학 및 요리에 정통한 AI 푸드 컨설턴트 역할 부여.
-Multi-modal Context: 이미지 분석 결과에서 얻은 실제 영양 성분 데이터(food_data)를 참조하여 과학적 근거가 있는 건강 조리법을 제안합니다.
-
-3. API 엔드포인트 및 데이터 모델링Pydantic 기반 객체 매핑: RecommendationRequest 모델을 도입하여 백엔드로부터 전달받는 데이터의 유효성을 검증하고 시스템 간의 통신 안정성을 확보했습니다.  JSON 구조화 출력: JsonOutputParser를 사용하여 AI의 답변을 Java 백엔드에서 즉시 처리 가능한 JSON 배열 형식으로 규격화했습니다.  
