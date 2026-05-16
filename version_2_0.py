@@ -144,6 +144,11 @@ class RecommendationRequest(BaseModel):
     user_preference: str  # 양식, 일식, 한식 등
     nutrition_data: Optional[dict] = None # 기존 분석된 성분 데이터
 
+# [추가] 냉장고 전체 식재료 기반 추천 요청 모델
+class FridgeRecommendationRequest(BaseModel):
+    user_id: str
+    user_preference: str
+    ingredients: List[str]
 
 # 추천 agent 구축
 class FoodRecommendationAgent:
@@ -213,7 +218,38 @@ async def handle_request(file: Optional[UploadFile] = File(None), text: Optional
         return {"status": "success", "data": data}
     return {"status": "error", "message": "데이터 없음"}
 
-# 2. 음식 추천 엔드포인트 (새로 추가) 
+# 1. 냉장고 전체 식재료 기반 레시피 추천 (Java 백엔드와 연동)
+@app.post("/api/recommend")
+async def get_fridge_recommendations(request: FridgeRecommendationRequest):
+    """
+    Java 백엔드로부터 냉장고의 모든 식재료 리스트를 전달받아
+    사용자의 취향(DietGoal)을 고려한 맞춤 요리 3가지를 추천합니다.
+    """
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY가 설정되지 않았습니다.")
+
+    try:
+        agent = FoodRecommendationAgent(GEMINI_API_KEY)
+        chain = agent.get_recommendation_chain()
+        
+        # 식재료 리스트를 하나의 문자열로 결합하여 context 제공
+        ingredients_summary = ", ".join(request.ingredients)
+        
+        result = chain.invoke({
+            "user_id": request.user_id,
+            "user_preference": request.user_preference,
+            "food_name": "냉장고 속 다양한 식재료",
+            "cat": "복합 재료",
+            "food_data": ingredients_summary,
+            "format_instructions": agent.parser.get_format_instructions()
+        })
+        
+        return {"status": "success", "recommendations": result["recommendations"]}
+    except Exception as e:
+        print(f"냉장고 기반 추천 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 2. 특정 음식 기반 추천 엔드포인트
 @app.post("/fdmake")
 async def get_recommendations(request: RecommendationRequest):
     """
