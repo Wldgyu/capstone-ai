@@ -1,0 +1,25 @@
+name: Sync to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ] # 또는 master (Hugging Face로 푸시할 기준 브랜치)
+  workflow_dispatch: # 수동 실행 버튼 활성화
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true # 대용량 파일(LFS)이 있다면 true
+
+      - name: Push to HF
+        uses: huggingface/github-action@v1
+        with:
+          nohash: true # 불필요한 해시 생성을 방지하여 깔끔하게 동기화
+          # secrets.뒤에는 깃허브에 등록하신 정확한 Secret 이름을 적어주세요.
+          hf_token: ${{ secrets.HF_TOKEN }}
+
+          hf_repo: kimchi9/cap_refrigerator
