@@ -41,6 +41,13 @@ def load_api_keys(filepath="api_key.txt"):
 load_api_keys()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") # 이 줄이 추가되었습니다.
 FOOD_API_KEY = os.getenv("FOOD_NUTRITION_API_KEY")
+
+# API 키가 없는 경우 서버 시작 단계에서 경고 출력 (디버깅 용도)
+if not GEMINI_API_KEY:
+    print("⚠️ 경고: GEMINI_API_KEY가 환경변수에 설정되지 않았습니다.")
+if not FOOD_API_KEY:
+    print("⚠️ 경고: FOOD_NUTRITION_API_KEY가 환경변수에 설정되지 않았습니다.")
+
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # ---------------------------------------------------------
