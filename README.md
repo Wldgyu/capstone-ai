@@ -1,3 +1,12 @@
+---
+title: Cap Refrigerator
+emoji: 🍅
+colorFrom: green
+colorTo: lime
+sdk: docker
+pinned: false
+---
+
 # capstone-ai
 캡스톤 ai파트
 
@@ -48,11 +57,3 @@ Multi-modal Context: 이미지 분석 결과에서 얻은 실제 영양 성분 �
 
 3. API 엔드포인트 및 데이터 모델링Pydantic 기반 객체 매핑: RecommendationRequest 모델을 도입하여 백엔드로부터 전달받는 데이터의 유효성을 검증하고 시스템 간의 통신 안정성을 확보했습니다.  JSON 구조화 출력: JsonOutputParser를 사용하여 AI의 답변을 Java 백엔드에서 즉시 처리 가능한 JSON 배열 형식으로 규격화했습니다.
 
----
-title: Cap Refrigerator
-emoji: 🍅
-colorFrom: green
-colorTo: lime
-sdk: docker
-pinned: false
----
