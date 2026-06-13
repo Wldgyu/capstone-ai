@@ -19,6 +19,5 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # 허깅페이스 저장소를 원격 연결하고 강제로 main 브랜치에 푸시합니다.
           git remote add space https://kimchi9:$HF_TOKEN@huggingface.co/spaces/kimchi9/cap_refrigerator
           git push --force space main
