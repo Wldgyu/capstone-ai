@@ -6,3 +6,4 @@ requests
 pydantic
 langchain-google-genai
 langchain-core
+python-multipart
