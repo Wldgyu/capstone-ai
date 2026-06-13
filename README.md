@@ -2,7 +2,7 @@
 title: Cap Refrigerator
 emoji: 🍅
 colorFrom: green
-colorTo: lime
+colorTo: yellow
 sdk: docker
 pinned: false
 ---
