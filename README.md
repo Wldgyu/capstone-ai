@@ -46,4 +46,13 @@ FOOD_NUTRITION_API_KEY= apikey넣기
 지능형 프롬프트 설계:Persona: 영양학 및 요리에 정통한 AI 푸드 컨설턴트 역할 부여.
 Multi-modal Context: 이미지 분석 결과에서 얻은 실제 영양 성분 데이터(food_data)를 참조하여 과학적 근거가 있는 건강 조리법을 제안합니다.
 
-3. API 엔드포인트 및 데이터 모델링Pydantic 기반 객체 매핑: RecommendationRequest 모델을 도입하여 백엔드로부터 전달받는 데이터의 유효성을 검증하고 시스템 간의 통신 안정성을 확보했습니다.  JSON 구조화 출력: JsonOutputParser를 사용하여 AI의 답변을 Java 백엔드에서 즉시 처리 가능한 JSON 배열 형식으로 규격화했습니다.  
+3. API 엔드포인트 및 데이터 모델링Pydantic 기반 객체 매핑: RecommendationRequest 모델을 도입하여 백엔드로부터 전달받는 데이터의 유효성을 검증하고 시스템 간의 통신 안정성을 확보했습니다.  JSON 구조화 출력: JsonOutputParser를 사용하여 AI의 답변을 Java 백엔드에서 즉시 처리 가능한 JSON 배열 형식으로 규격화했습니다.
+
+---
+title: Cap Refrigerator
+emoji: 🍅
+colorFrom: green
+colorTo: lime
+sdk: docker
+pinned: false
+---
