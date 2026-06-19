@@ -23,7 +23,7 @@ Hybrid Data Pipeline: 공공데이터 API(식품의약품안전처)와 LLM의 �
 Data Refinement: API 검색 결과가 부정확할 경우, LLM이 스스로 데이터를 검토하고 보정(Self-correction)하여 정제된 JSON 출력.
 
 3. 데이터 파이프라인 구조 (Architecture)
-텍스트로 흐름을 명시하면 전문가적인 느낌을 줍니다.
+텍스트로 흐름을 명시.
 
 Input: 음식 이미지 혹은 텍스트 입력.
 
