@@ -17,7 +17,9 @@ pinned: false
 
 이후 LangChain 기반 AI Food Agent가 사용자의 취향 정보와 영양 데이터를 종합 분석하여 맞춤형 요리 및 건강 활용법을 추천하는 AI 시스템입니다.
 
-🏗️ System Architecture
+## 🏗️ System Architecture
+
+```text
 Frontend (React)
         │
         ▼
@@ -53,6 +55,7 @@ LangChain Food Recommendation Agent
         ├─ 영양 데이터 기반 판단
         ├─ 요리 3종 추천
         └─ JSON 구조화 응답
+```
 🚀 주요 기능 (Features)
 1. Intelligent Food Analysis
 Gemini 2.5 Flash 기반 음식 인식
