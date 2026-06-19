@@ -184,6 +184,7 @@ POST /api/recommend
 프로젝트 루트에 api_key.txt 생성
 
 GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+
 FOOD_NUTRITION_API_KEY=YOUR_PUBLIC_API_KEY
 
 실행 전 해당 파일 경로가 올바르게 설정되어 있는지 확인합니다.
